@@ -32,6 +32,10 @@ export default function RootLayout() {
           options={{ title: 'Adult Content Blocking' }}
         />
         <Stack.Screen 
+          name="recovery" 
+          options={{ title: 'Recovery Journey' }}
+        />
+        <Stack.Screen 
           name="settings" 
           options={{ title: 'Settings' }}
         />

@@ -96,6 +96,7 @@ export default function HomeScreen() {
   const navigateToAppSelection = () => router.push('/app-selection');
   const navigateToTimer = () => router.push('/timer');
   const navigateToAdultBlocking = () => router.push('/adult-blocking');
+  const navigateToRecovery = () => router.push('/recovery');
 
   const formatDuration = (hours: number) => {
     if (hours >= 24) {
@@ -178,6 +179,14 @@ export default function HomeScreen() {
           >
             <Ionicons name="shield" size={24} color="#fff" />
             <Text style={styles.buttonText}>Adult Content Blocking</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.recoveryButton}
+            onPress={navigateToRecovery}
+          >
+            <Ionicons name="heart" size={24} color="#FF6B6B" />
+            <Text style={styles.recoveryButtonText}>Recovery Journey</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -335,6 +344,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
     minHeight: 56,
+  },
+  recoveryButton: {
+    backgroundColor: '#fff5f5',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    gap: 8,
+    borderWidth: 2,
+    borderColor: '#FF6B6B',
+    minHeight: 56,
+  },
+  recoveryButtonText: {
+    color: '#FF6B6B',
+    fontSize: 16,
+    fontWeight: '600',
   },
   startButton: {
     backgroundColor: '#4CAF50',
