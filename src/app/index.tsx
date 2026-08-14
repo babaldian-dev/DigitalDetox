@@ -3,10 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAppStore, getRandomQuote } from '../store/appStore';
+import { useTheme } from '../context/ThemeContext';
 import { useEffect, useState } from 'react';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const {
     isBlockingActive,
     blockedApps,
@@ -97,6 +99,7 @@ export default function HomeScreen() {
   const navigateToTimer = () => router.push('/timer');
   const navigateToAdultBlocking = () => router.push('/adult-blocking');
   const navigateToRecovery = () => router.push('/recovery');
+  const navigateToSettings = () => router.push('/settings');
 
   const formatDuration = (hours: number) => {
     if (hours >= 24) {
@@ -110,19 +113,26 @@ export default function HomeScreen() {
     return `${hours} hour${hours > 1 ? 's' : ''}`;
   };
 
+  const styles = getStyles(colors, isDark);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <StatusBar backgroundColor="#f8f9fa" barStyle="dark-content" />
+      <StatusBar backgroundColor={colors.background} barStyle={isDark ? 'light-content' : 'dark-content'} />
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
+        {/* Settings Button */}
+        <TouchableOpacity style={styles.settingsButton} onPress={navigateToSettings}>
+          <Ionicons name="settings-outline" size={24} color={colors.text} />
+        </TouchableOpacity>
+
         {/* Status Banner */}
         <View style={[styles.statusCard, isBlockingActive && styles.activeCard]}>
           <Ionicons 
             name={isBlockingActive ? 'lock-closed' : 'lock-open'} 
             size={32} 
-            color={isBlockingActive ? '#4CAF50' : '#FF6B6B'} 
+            color={isBlockingActive ? colors.success : colors.danger} 
           />
           <Text style={styles.statusText}>
             {isBlockingActive ? '🔒 Blocking Active' : '🔓 No Active Block'}
@@ -157,7 +167,7 @@ export default function HomeScreen() {
 
         {/* Quote Card */}
         <View style={styles.quoteCard}>
-          <Ionicons name="chatbubble" size={20} color="#666" />
+          <Ionicons name="chatbubble" size={20} color={colors.textSecondary} />
           <Text style={styles.quoteText}>"{currentQuote}"</Text>
         </View>
 
@@ -167,7 +177,7 @@ export default function HomeScreen() {
             style={styles.primaryButton}
             onPress={navigateToAppSelection}
           >
-            <Ionicons name="apps" size={24} color="#fff" />
+            <Ionicons name="apps" size={24} color={colors.textInverse} />
             <Text style={styles.buttonText}>
               {blockedApps.length > 0 ? 'Manage Blocked Apps' : 'Select Apps to Block'}
             </Text>
@@ -177,7 +187,7 @@ export default function HomeScreen() {
             style={styles.primaryButton}
             onPress={navigateToAdultBlocking}
           >
-            <Ionicons name="shield" size={24} color="#fff" />
+            <Ionicons name="shield" size={24} color={colors.textInverse} />
             <Text style={styles.buttonText}>Adult Content Blocking</Text>
           </TouchableOpacity>
 
@@ -185,7 +195,7 @@ export default function HomeScreen() {
             style={styles.recoveryButton}
             onPress={navigateToRecovery}
           >
-            <Ionicons name="heart" size={24} color="#FF6B6B" />
+            <Ionicons name="heart" size={24} color={colors.danger} />
             <Text style={styles.recoveryButtonText}>Recovery Journey</Text>
           </TouchableOpacity>
 
@@ -193,7 +203,7 @@ export default function HomeScreen() {
             style={styles.secondaryButton}
             onPress={navigateToTimer}
           >
-            <Ionicons name="time" size={24} color="#1a1a2e" />
+            <Ionicons name="time" size={24} color={colors.text} />
             <Text style={styles.secondaryButtonText}>
               {timerActive ? `⏱️ ${timeDisplay}` : 'Set Timer'}
             </Text>
@@ -209,7 +219,7 @@ export default function HomeScreen() {
             <Ionicons 
               name={isBlockingActive ? 'stop' : 'play'} 
               size={24} 
-              color="#fff" 
+              color={colors.textInverse} 
             />
             <Text style={styles.buttonText}>
               {isBlockingActive ? 'Stop Blocking' : 'Start Blocking'}
@@ -230,165 +240,175 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-    paddingBottom: Platform.OS === 'android' ? 120 : 80,
-  },
-  scrollContent: {
-    paddingBottom: Platform.OS === 'android' ? 140 : 80,
-  },
-  statusCard: {
-    backgroundColor: '#ffffff',
-    margin: 16,
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  activeCard: {
-    borderWidth: 2,
-    borderColor: '#4CAF50',
-    backgroundColor: '#f0faf0',
-  },
-  statusText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1a1a2e',
-    marginTop: 8,
-  },
-  remainingTime: {
-    fontSize: 18,
-    color: '#1a1a2e',
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  durationText: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-  },
-  statCard: {
-    backgroundColor: '#ffffff',
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1a1a2e',
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
-  },
-  quoteCard: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    padding: 20,
-    backgroundColor: '#f0f4ff',
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  quoteText: {
-    fontSize: 16,
-    color: '#1a1a2e',
-    flex: 1,
-    fontStyle: 'italic',
-  },
-  actionsContainer: {
-    paddingHorizontal: 16,
-    gap: 12,
-    marginBottom: 16,
-  },
-  primaryButton: {
-    backgroundColor: '#1a1a2e',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-    minHeight: 56,
-  },
-  secondaryButton: {
-    backgroundColor: '#ffffff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    minHeight: 56,
-  },
-  recoveryButton: {
-    backgroundColor: '#fff5f5',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-    borderWidth: 2,
-    borderColor: '#FF6B6B',
-    minHeight: 56,
-  },
-  recoveryButtonText: {
-    color: '#FF6B6B',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  startButton: {
-    backgroundColor: '#4CAF50',
-  },
-  stopButton: {
-    backgroundColor: '#FF6B6B',
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButtonText: {
-    color: '#1a1a2e',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  motivationFooter: {
-    margin: 16,
-    padding: 20,
-    backgroundColor: '#e8f5e9',
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  motivationFooterText: {
-    fontSize: 16,
-    color: '#2e7d32',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-});
+function getStyles(colors: any, isDark: boolean) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingBottom: Platform.OS === 'android' ? 120 : 80,
+    },
+    scrollContent: {
+      paddingBottom: Platform.OS === 'android' ? 140 : 80,
+    },
+    settingsButton: {
+      position: 'absolute',
+      top: 8,
+      right: 16,
+      zIndex: 10,
+      padding: 8,
+    },
+    statusCard: {
+      backgroundColor: colors.statusBg,
+      margin: 16,
+      padding: 20,
+      borderRadius: 16,
+      alignItems: 'center',
+      shadowColor: colors.cardShadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+      marginTop: 50,
+    },
+    activeCard: {
+      borderWidth: 2,
+      borderColor: colors.statusActiveBorder,
+      backgroundColor: colors.statusActiveBg,
+    },
+    statusText: {
+      fontSize: 20,
+      fontWeight: '600',
+      color: colors.text,
+      marginTop: 8,
+    },
+    remainingTime: {
+      fontSize: 18,
+      color: colors.text,
+      marginTop: 4,
+      fontWeight: '500',
+    },
+    durationText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    statsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingHorizontal: 16,
+      marginBottom: 16,
+    },
+    statCard: {
+      backgroundColor: colors.surface,
+      padding: 16,
+      borderRadius: 12,
+      alignItems: 'center',
+      flex: 1,
+      marginHorizontal: 4,
+      shadowColor: colors.cardShadow,
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.05,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    statNumber: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    statLabel: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 4,
+    },
+    quoteCard: {
+      marginHorizontal: 16,
+      marginBottom: 16,
+      padding: 20,
+      backgroundColor: colors.quoteBg,
+      borderRadius: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+    quoteText: {
+      fontSize: 16,
+      color: colors.quoteText,
+      flex: 1,
+      fontStyle: 'italic',
+    },
+    actionsContainer: {
+      paddingHorizontal: 16,
+      gap: 12,
+      marginBottom: 16,
+    },
+    primaryButton: {
+      backgroundColor: colors.primary,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      borderRadius: 12,
+      gap: 8,
+      minHeight: 56,
+    },
+    secondaryButton: {
+      backgroundColor: colors.surface,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      borderRadius: 12,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      minHeight: 56,
+    },
+    recoveryButton: {
+      backgroundColor: isDark ? '#2a1a1a' : '#fff5f5',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 16,
+      borderRadius: 12,
+      gap: 8,
+      borderWidth: 2,
+      borderColor: colors.danger,
+      minHeight: 56,
+    },
+    recoveryButtonText: {
+      color: colors.danger,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    startButton: {
+      backgroundColor: colors.success,
+    },
+    stopButton: {
+      backgroundColor: colors.danger,
+    },
+    buttonText: {
+      color: colors.textInverse,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    secondaryButtonText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: '600',
+    },
+    motivationFooter: {
+      margin: 16,
+      padding: 20,
+      backgroundColor: colors.motivationBg,
+      borderRadius: 12,
+      alignItems: 'center',
+    },
+    motivationFooterText: {
+      fontSize: 16,
+      color: colors.motivationText,
+      textAlign: 'center',
+      fontWeight: '500',
+    },
+  });
+}
