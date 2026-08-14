@@ -1,17 +1,132 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { useAppStore, getRandomQuote } from '../store/appStore';
+import { useEffect, useState } from 'react';
 
 export default function HomeScreen() {
-  const isBlockingActive = false;
-  const remainingTime = '2d 4h';
+  const router = useRouter();
+  const {
+    isBlockingActive,
+    blockedApps,
+    streak,
+    attemptsBlocked,
+    selectedDuration,
+    timerActive,
+    currentQuote,
+    setBlockingActive,
+    setCurrentQuote,
+    incrementStreak,
+    startTimer,
+    stopTimer,
+    getRemainingTime,
+  } = useAppStore();
+
+  const [timeDisplay, setTimeDisplay] = useState('0d 0h 0m');
+
+  useEffect(() => {
+    if (!currentQuote) {
+      setCurrentQuote(getRandomQuote());
+    }
+
+    const quoteInterval = setInterval(() => {
+      setCurrentQuote(getRandomQuote());
+    }, 30000);
+
+    const timerInterval = setInterval(() => {
+      if (timerActive) {
+        const remaining = getRemainingTime();
+        setTimeDisplay(remaining);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(quoteInterval);
+      clearInterval(timerInterval);
+    };
+  }, [timerActive]);
+
+  const handleStartBlocking = () => {
+    console.log('Start Blocking pressed');
+    if (blockedApps.length === 0) {
+      Alert.alert(
+        'No Apps Selected',
+        'Please select at least one app to block before starting.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
+    Alert.alert(
+      'Start Blocking',
+      `You are about to block ${blockedApps.length} app(s) for ${selectedDuration} days. Are you ready?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Start',
+          onPress: () => {
+            console.log('Starting blocking...');
+            setBlockingActive(true);
+            startTimer();
+            incrementStreak();
+            Alert.alert('🔒 Blocking Started', `You're on a ${streak + 1} day streak! Stay focused!`);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleStopBlocking = () => {
+    console.log('Stop Blocking pressed');
+    Alert.alert(
+      'Stop Blocking',
+      'Are you sure you want to stop blocking? This will reset your progress.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Stop',
+          style: 'destructive',
+          onPress: () => {
+            console.log('Stopping blocking...');
+            setBlockingActive(false);
+            stopTimer();
+          },
+        },
+      ]
+    );
+  };
+
+  const navigateToAppSelection = () => {
+    console.log('Navigating to App Selection');
+    router.push('/app-selection');
+  };
+
+  const navigateToTimer = () => {
+    console.log('Navigating to Timer');
+    router.push('/timer');
+  };
+
+  const formatDuration = (days: number) => {
+    if (days >= 365) {
+      const years = Math.floor(days / 365);
+      return `${years} year${years > 1 ? 's' : ''}`;
+    }
+    if (days >= 30) {
+      const months = Math.floor(days / 30);
+      return `${months} month${months > 1 ? 's' : ''}`;
+    }
+    return `${days} day${days > 1 ? 's' : ''}`;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Status Banner */}
-        <View style={styles.statusCard}>
+        <View style={[styles.statusCard, isBlockingActive && styles.activeCard]}>
           <Ionicons 
             name={isBlockingActive ? 'lock-closed' : 'lock-open'} 
             size={32} 
@@ -21,61 +136,87 @@ export default function HomeScreen() {
             {isBlockingActive ? '🔒 Blocking Active' : '🔓 No Active Block'}
           </Text>
           {isBlockingActive && (
-            <Text style={styles.remainingTime}>
-              {remainingTime} remaining
-            </Text>
+            <>
+              <Text style={styles.remainingTime}>
+                ⏱️ {getRemainingTime()} remaining
+              </Text>
+              <Text style={styles.durationText}>
+                🎯 Goal: {formatDuration(selectedDuration)}
+              </Text>
+            </>
           )}
         </View>
 
         {/* Quick Stats */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statNumber}>{blockedApps.length}</Text>
             <Text style={styles.statLabel}>Apps Blocked</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>0</Text>
+            <Text style={styles.statNumber}>{attemptsBlocked}</Text>
             <Text style={styles.statLabel}>Blocked Attempts</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statNumber}>0d</Text>
+            <Text style={styles.statNumber}>{streak}d</Text>
             <Text style={styles.statLabel}>Streak</Text>
           </View>
         </View>
 
+        {/* Quote Card */}
+        <View style={styles.quoteCard}>
+          <Ionicons name="chatbubble" size={20} color="#666" />
+          <Text style={styles.quoteText}>"{currentQuote}"</Text>
+        </View>
+
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
-          <Link href="/app-selection" asChild>
-            <TouchableOpacity style={styles.primaryButton}>
-              <Ionicons name="apps" size={24} color="#fff" />
-              <Text style={styles.buttonText}>Select Apps to Block</Text>
-            </TouchableOpacity>
-          </Link>
-
-          <Link href="/timer" asChild>
-            <TouchableOpacity style={styles.secondaryButton}>
-              <Ionicons name="time" size={24} color="#1a1a2e" />
-              <Text style={styles.secondaryButtonText}>Set Timer</Text>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity 
+            style={styles.primaryButton}
+            onPress={navigateToAppSelection}
+          >
+            <Ionicons name="apps" size={24} color="#fff" />
+            <Text style={styles.buttonText}>
+              {blockedApps.length > 0 ? 'Manage Blocked Apps' : 'Select Apps to Block'}
+            </Text>
+          </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[styles.primaryButton, styles.startButton]}
-            onPress={() => {
-              console.log('Start blocking');
-            }}
+            style={styles.secondaryButton}
+            onPress={navigateToTimer}
           >
-            <Ionicons name="play" size={24} color="#fff" />
-            <Text style={styles.buttonText}>Start Blocking</Text>
+            <Ionicons name="time" size={24} color="#1a1a2e" />
+            <Text style={styles.secondaryButtonText}>
+              {timerActive ? `⏱️ ${timeDisplay}` : 'Set Timer'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={[
+              styles.primaryButton, 
+              isBlockingActive ? styles.stopButton : styles.startButton
+            ]}
+            onPress={isBlockingActive ? handleStopBlocking : handleStartBlocking}
+          >
+            <Ionicons 
+              name={isBlockingActive ? 'stop' : 'play'} 
+              size={24} 
+              color="#fff" 
+            />
+            <Text style={styles.buttonText}>
+              {isBlockingActive ? 'Stop Blocking' : 'Start Blocking'}
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* Motivation */}
-        <View style={styles.motivationCard}>
-          <Text style={styles.motivationText}>
-            "Small steps lead to big changes. You've got this! 💪"
-          </Text>
-        </View>
+        {/* Motivational Footer */}
+        {isBlockingActive && (
+          <View style={styles.motivationFooter}>
+            <Text style={styles.motivationFooterText}>
+              💪 You've blocked {attemptsBlocked} attempts today!
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -85,6 +226,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  scrollContent: {
+    paddingBottom: 40,
   },
   statusCard: {
     backgroundColor: '#ffffff',
@@ -98,6 +242,11 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
+  activeCard: {
+    borderWidth: 2,
+    borderColor: '#4CAF50',
+    backgroundColor: '#f0faf0',
+  },
   statusText: {
     fontSize: 20,
     fontWeight: '600',
@@ -105,7 +254,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   remainingTime: {
-    fontSize: 16,
+    fontSize: 18,
+    color: '#1a1a2e',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  durationText: {
+    fontSize: 14,
     color: '#666',
     marginTop: 4,
   },
@@ -138,9 +293,26 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
+  quoteCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    padding: 20,
+    backgroundColor: '#f0f4ff',
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  quoteText: {
+    fontSize: 16,
+    color: '#1a1a2e',
+    flex: 1,
+    fontStyle: 'italic',
+  },
   actionsContainer: {
     paddingHorizontal: 16,
     gap: 12,
+    marginBottom: 16,
   },
   primaryButton: {
     backgroundColor: '#1a1a2e',
@@ -150,6 +322,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     gap: 8,
+    minHeight: 56,
   },
   secondaryButton: {
     backgroundColor: '#ffffff',
@@ -161,9 +334,13 @@ const styles = StyleSheet.create({
     gap: 8,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    minHeight: 56,
   },
   startButton: {
     backgroundColor: '#4CAF50',
+  },
+  stopButton: {
+    backgroundColor: '#FF6B6B',
   },
   buttonText: {
     color: '#ffffff',
@@ -175,16 +352,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  motivationCard: {
+  motivationFooter: {
     margin: 16,
     padding: 20,
     backgroundColor: '#e8f5e9',
     borderRadius: 12,
+    alignItems: 'center',
   },
-  motivationText: {
+  motivationFooterText: {
     fontSize: 16,
     color: '#2e7d32',
     textAlign: 'center',
-    fontStyle: 'italic',
+    fontWeight: '500',
   },
 });

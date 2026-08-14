@@ -1,57 +1,89 @@
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Platform } from 'react-native';
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useAppStore } from '../store/appStore';
 
-// Mock data - we'll replace with real app list later
+// Mock data for testing
 const mockApps = [
-  { id: '1', name: 'Instagram', packageName: 'com.instagram.android' },
-  { id: '2', name: 'Facebook', packageName: 'com.facebook.android' },
-  { id: '3', name: 'Twitter', packageName: 'com.twitter.android' },
-  { id: '4', name: 'TikTok', packageName: 'com.tiktok.android' },
-  { id: '5', name: 'YouTube', packageName: 'com.youtube.android' },
-  { id: '6', name: 'Snapchat', packageName: 'com.snapchat.android' },
+  { packageName: 'com.instagram.android', name: 'Instagram' },
+  { packageName: 'com.facebook.android', name: 'Facebook' },
+  { packageName: 'com.twitter.android', name: 'Twitter' },
+  { packageName: 'com.tiktok.android', name: 'TikTok' },
+  { packageName: 'com.youtube.android', name: 'YouTube' },
+  { packageName: 'com.snapchat.android', name: 'Snapchat' },
+  { packageName: 'com.whatsapp', name: 'WhatsApp' },
+  { packageName: 'com.reddit.frontpage', name: 'Reddit' },
+  { packageName: 'com.pinterest', name: 'Pinterest' },
+  { packageName: 'com.linkedin.android', name: 'LinkedIn' },
 ];
 
 export default function AppSelectionScreen() {
-  const [selectedApps, setSelectedApps] = useState<string[]>([]);
+  const { blockedApps, setBlockedApps } = useAppStore();
+  const [selectedApps, setSelectedApps] = useState<string[]>(
+    blockedApps.map(app => app.packageName)
+  );
   const router = useRouter();
 
-  const toggleApp = (appId: string) => {
+  const toggleApp = (packageName: string) => {
     setSelectedApps(prev =>
-      prev.includes(appId)
-        ? prev.filter(id => id !== appId)
-        : [...prev, appId]
+      prev.includes(packageName)
+        ? prev.filter(id => id !== packageName)
+        : [...prev, packageName]
     );
   };
 
+  const handleConfirm = () => {
+    const selectedAppObjects = mockApps
+      .filter(app => selectedApps.includes(app.packageName))
+      .map(app => ({
+        packageName: app.packageName,
+        name: app.name,
+      }));
+    
+    setBlockedApps(selectedAppObjects);
+    Alert.alert('✅ Apps Saved', `${selectedApps.length} app(s) selected for blocking.`);
+    router.back();
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Select Apps to Block</Text>
-      <Text style={styles.subtitle}>
-        Choose the apps you want to restrict access to
-      </Text>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Select Apps to Block</Text>
+        <Text style={styles.subtitle}>
+          Choose the apps you want to restrict access to
+        </Text>
+        <Text style={styles.selectedCount}>
+          {selectedApps.length} app{selectedApps.length !== 1 ? 's' : ''} selected
+        </Text>
+      </View>
 
       <FlatList
         data={mockApps}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.packageName}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.appItem}
-            onPress={() => toggleApp(item.id)}
+            onPress={() => toggleApp(item.packageName)}
           >
             <View style={styles.appInfo}>
-              <Text style={styles.appName}>{item.name}</Text>
-              <Text style={styles.appPackage}>{item.packageName}</Text>
+              <View style={styles.appIconPlaceholder}>
+                <Ionicons name="apps" size={20} color="#999" />
+              </View>
+              <View>
+                <Text style={styles.appName}>{item.name}</Text>
+                <Text style={styles.appPackage}>{item.packageName}</Text>
+              </View>
             </View>
             <Ionicons
-              name={selectedApps.includes(item.id) ? 'checkbox' : 'square-outline'}
+              name={selectedApps.includes(item.packageName) ? 'checkbox' : 'square-outline'}
               size={24}
-              color={selectedApps.includes(item.id) ? '#1a1a2e' : '#ccc'}
+              color={selectedApps.includes(item.packageName) ? '#1a1a2e' : '#ccc'}
             />
           </TouchableOpacity>
         )}
+        contentContainerStyle={styles.listContent}
       />
 
       <TouchableOpacity
@@ -60,10 +92,7 @@ export default function AppSelectionScreen() {
           selectedApps.length === 0 && styles.disabledButton,
         ]}
         disabled={selectedApps.length === 0}
-        onPress={() => {
-          console.log('Selected apps:', selectedApps);
-          router.back();
-        }}
+        onPress={handleConfirm}
       >
         <Text style={styles.confirmText}>
           Block {selectedApps.length} App{selectedApps.length !== 1 ? 's' : ''}
@@ -77,19 +106,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'android' ? 120 : 80,
+  },
+  header: {
+    marginBottom: 16,
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#1a1a2e',
-    marginTop: 20,
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  selectedCount: {
+    fontSize: 14,
+    color: '#1a1a2e',
+    marginTop: 4,
+    fontWeight: '500',
+  },
+  listContent: {
+    paddingBottom: Platform.OS === 'android' ? 160 : 80,
   },
   appItem: {
     backgroundColor: '#ffffff',
@@ -106,7 +148,18 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   appInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
     flex: 1,
+  },
+  appIconPlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   appName: {
     fontSize: 16,
@@ -123,7 +176,10 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 16,
+    position: 'absolute',
+    bottom: Platform.OS === 'android' ? 40 : 20,
+    left: 20,
+    right: 20,
   },
   disabledButton: {
     backgroundColor: '#ccc',

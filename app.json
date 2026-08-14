@@ -10,13 +10,15 @@
     "ios": {
       "icon": "./assets/expo.icon",
       "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true,
-      "baseUrl": ".",
-      "paths": {
-        "@/*": ["./*"]
+        "typedRoutes": true,
+        "reactCompiler": true,
+        "baseUrl": ".",
+        "paths": {
+          "@/*": [
+            "./*"
+          ]
+        }
       }
-    }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +27,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.MinimalistApp"
     },
     "web": {
       "output": "static",
