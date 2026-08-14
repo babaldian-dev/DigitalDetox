@@ -12,12 +12,18 @@ interface ThemeState {
 
 export const useThemeStore = create<ThemeState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       mode: 'light',
-      toggleTheme: () => set((state) => ({
-        mode: state.mode === 'light' ? 'dark' : 'light'
-      })),
-      setTheme: (mode) => set({ mode }),
+      toggleTheme: () => {
+        const current = get().mode;
+        const newMode = current === 'light' ? 'dark' : 'light';
+        console.log('Toggling theme from', current, 'to', newMode);
+        set({ mode: newMode });
+      },
+      setTheme: (mode) => {
+        console.log('Setting theme to', mode);
+        set({ mode });
+      },
     }),
     {
       name: 'theme-storage',

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useThemeStore, colors, ThemeColors } from '../theme/theme';
 
 interface ThemeContextType {
@@ -11,17 +11,27 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const { mode, toggleTheme } = useThemeStore();
+  const { mode, toggleTheme, setTheme } = useThemeStore();
   const isDark = mode === 'dark';
   const themeColors = colors[mode];
 
+  // Debug logging
+  useEffect(() => {
+    console.log('ThemeProvider: Current mode is', mode);
+  }, [mode]);
+
+  const value = {
+    colors: themeColors,
+    mode,
+    toggleTheme: () => {
+      console.log('ThemeProvider: Toggle called, current mode:', mode);
+      toggleTheme();
+    },
+    isDark,
+  };
+
   return (
-    <ThemeContext.Provider value={{
-      colors: themeColors,
-      mode,
-      toggleTheme,
-      isDark,
-    }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
