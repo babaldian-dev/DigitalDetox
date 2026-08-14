@@ -8,7 +8,15 @@
     "scheme": "minimalistapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true,
+      "baseUrl": ".",
+      "paths": {
+        "@/*": ["./*"]
+      }
+    }
     },
     "android": {
       "adaptiveIcon": {
@@ -32,7 +40,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,
