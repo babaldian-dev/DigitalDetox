@@ -28,6 +28,10 @@ export default function RootLayout() {
           options={{ title: 'Set Timer' }}
         />
         <Stack.Screen 
+          name="adult-blocking" 
+          options={{ title: 'Adult Content Blocking' }}
+        />
+        <Stack.Screen 
           name="settings" 
           options={{ title: 'Settings' }}
         />

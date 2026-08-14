@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -23,7 +23,7 @@ export default function HomeScreen() {
     getRemainingTime,
   } = useAppStore();
 
-  const [timeDisplay, setTimeDisplay] = useState('0d 0h 0m');
+  const [timeDisplay, setTimeDisplay] = useState('0h 0m');
 
   useEffect(() => {
     if (!currentQuote) {
@@ -48,7 +48,6 @@ export default function HomeScreen() {
   }, [timerActive]);
 
   const handleStartBlocking = () => {
-    console.log('Start Blocking pressed');
     if (blockedApps.length === 0) {
       Alert.alert(
         'No Apps Selected',
@@ -60,13 +59,12 @@ export default function HomeScreen() {
 
     Alert.alert(
       'Start Blocking',
-      `You are about to block ${blockedApps.length} app(s) for ${selectedDuration} days. Are you ready?`,
+      `You are about to block ${blockedApps.length} app(s) for ${selectedDuration} hours. Are you ready?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Start',
           onPress: () => {
-            console.log('Starting blocking...');
             setBlockingActive(true);
             startTimer();
             incrementStreak();
@@ -78,7 +76,6 @@ export default function HomeScreen() {
   };
 
   const handleStopBlocking = () => {
-    console.log('Stop Blocking pressed');
     Alert.alert(
       'Stop Blocking',
       'Are you sure you want to stop blocking? This will reset your progress.',
@@ -88,7 +85,6 @@ export default function HomeScreen() {
           text: 'Stop',
           style: 'destructive',
           onPress: () => {
-            console.log('Stopping blocking...');
             setBlockingActive(false);
             stopTimer();
           },
@@ -97,30 +93,25 @@ export default function HomeScreen() {
     );
   };
 
-  const navigateToAppSelection = () => {
-    console.log('Navigating to App Selection');
-    router.push('/app-selection');
-  };
+  const navigateToAppSelection = () => router.push('/app-selection');
+  const navigateToTimer = () => router.push('/timer');
+  const navigateToAdultBlocking = () => router.push('/adult-blocking');
 
-  const navigateToTimer = () => {
-    console.log('Navigating to Timer');
-    router.push('/timer');
-  };
-
-  const formatDuration = (days: number) => {
-    if (days >= 365) {
-      const years = Math.floor(days / 365);
-      return `${years} year${years > 1 ? 's' : ''}`;
+  const formatDuration = (hours: number) => {
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      const remainingHours = hours % 24;
+      if (remainingHours === 0) {
+        return `${days} day${days > 1 ? 's' : ''}`;
+      }
+      return `${days} day${days > 1 ? 's' : ''}, ${remainingHours} hour${remainingHours > 1 ? 's' : ''}`;
     }
-    if (days >= 30) {
-      const months = Math.floor(days / 30);
-      return `${months} month${months > 1 ? 's' : ''}`;
-    }
-    return `${days} day${days > 1 ? 's' : ''}`;
+    return `${hours} hour${hours > 1 ? 's' : ''}`;
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar backgroundColor="#f8f9fa" barStyle="dark-content" />
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -182,6 +173,14 @@ export default function HomeScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity 
+            style={styles.primaryButton}
+            onPress={navigateToAdultBlocking}
+          >
+            <Ionicons name="shield" size={24} color="#fff" />
+            <Text style={styles.buttonText}>Adult Content Blocking</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
             style={styles.secondaryButton}
             onPress={navigateToTimer}
           >
@@ -226,9 +225,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    paddingBottom: Platform.OS === 'android' ? 120 : 80,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === 'android' ? 140 : 80,
   },
   statusCard: {
     backgroundColor: '#ffffff',
