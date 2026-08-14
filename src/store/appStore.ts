@@ -180,3 +180,10 @@ export const useAppStore = create<AppState>()(
 export const getRandomQuote = () => {
   return quotes[Math.floor(Math.random() * quotes.length)];
 };
+
+// Add password protection check
+export const checkAppLock = async (): Promise<boolean> => {
+  const { isEnabled, checkLockStatus } = usePasswordStore.getState();
+  if (!isEnabled) return false;
+  return checkLockStatus();
+};

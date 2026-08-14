@@ -3,13 +3,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
-import { useThemeStyles } from '../hooks/useThemeStyles';
+import { usePasswordStore } from '../store/passwordStore';
 import { useAppStore } from '../store/appStore';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors, isDark, toggleTheme, mode } = useTheme();
   const { resetAll } = useAppStore();
+  const { isEnabled } = usePasswordStore();
 
   const styles = getStyles(colors, isDark);
 
@@ -34,7 +35,10 @@ export default function SettingsScreen() {
   const handleToggle = () => {
     console.log('Toggle pressed, current mode:', mode);
     toggleTheme();
-    console.log('After toggle, new mode should be:', mode === 'light' ? 'dark' : 'light');
+  };
+
+  const navigateToPasswordSetup = () => {
+    router.push('/password-setup');
   };
 
   return (
@@ -64,6 +68,23 @@ export default function SettingsScreen() {
               Current theme: {isDark ? '🌙 Dark' : '☀️ Light'}
             </Text>
           </View>
+        </View>
+
+        {/* Security Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Security</Text>
+          
+          <TouchableOpacity style={styles.settingItem} onPress={navigateToPasswordSetup}>
+            <View style={styles.settingInfo}>
+              <Ionicons name="lock-closed" size={24} color={colors.text} />
+              <Text style={styles.settingText}>Password Protection</Text>
+            </View>
+            <View style={styles.statusBadge}>
+              <Text style={[styles.statusBadgeText, isEnabled ? styles.enabledText : styles.disabledText]}>
+                {isEnabled ? '✅ Enabled' : '❌ Disabled'}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* About Section */}
@@ -157,6 +178,21 @@ function getStyles(colors: any, isDark: boolean) {
       fontSize: 14,
       color: colors.textSecondary,
       fontWeight: '500',
+    },
+    statusBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 12,
+    },
+    statusBadgeText: {
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    enabledText: {
+      color: '#4CAF50',
+    },
+    disabledText: {
+      color: '#999',
     },
     dangerSection: {
       marginTop: 8,
