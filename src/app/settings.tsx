@@ -41,6 +41,10 @@ export default function SettingsScreen() {
     router.push('/password-setup');
   };
 
+  const navigateToNotificationSettings = () => {
+    router.push('/notification-settings');
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -68,6 +72,19 @@ export default function SettingsScreen() {
               Current theme: {isDark ? '🌙 Dark' : '☀️ Light'}
             </Text>
           </View>
+        </View>
+
+        {/* Notifications Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Notifications</Text>
+          
+          <TouchableOpacity style={styles.settingItem} onPress={navigateToNotificationSettings}>
+            <View style={styles.settingInfo}>
+              <Ionicons name="notifications" size={24} color={colors.text} />
+              <Text style={styles.settingText}>Notification Settings</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         {/* Security Section */}

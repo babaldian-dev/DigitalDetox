@@ -4,7 +4,6 @@ import { ThemeProvider } from '../context/ThemeContext';
 import { useTheme } from '../context/ThemeContext';
 import { usePasswordStore } from '../store/passwordStore';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
 
 function RootLayoutContent() {
   const { colors, isDark } = useTheme();
@@ -32,7 +31,7 @@ function RootLayoutContent() {
           contentStyle: { backgroundColor: colors.background },
         }}
       >
-        {shouldLock ? (
+        {shouldLock && (
           <Stack.Screen 
             name="password-lock" 
             options={{ 
@@ -40,7 +39,7 @@ function RootLayoutContent() {
               title: 'Lock Screen',
             }}
           />
-        ) : null}
+        )}
         <Stack.Screen 
           name="index" 
           options={{ 
@@ -78,6 +77,10 @@ function RootLayoutContent() {
             headerShown: false,
             title: 'Lock Screen',
           }}
+        />
+        <Stack.Screen 
+          name="notification-settings" 
+          options={{ title: 'Notifications' }}
         />
       </Stack>
     </>
