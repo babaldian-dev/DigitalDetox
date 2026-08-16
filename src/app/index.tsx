@@ -3,12 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAppStore, getRandomQuote } from '../store/appStore';
-import { useTheme } from '../context/ThemeContext';
 import { useEffect, useState } from 'react';
+import * as IntentLauncher from 'expo-intent-launcher';
+import { startActivityAsync, ActivityAction } from 'expo-intent-launcher';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { colors, isDark } = useTheme();
   const {
     isBlockingActive,
     blockedApps,
@@ -70,11 +70,19 @@ export default function HomeScreen() {
             setBlockingActive(true);
             startTimer();
             incrementStreak();
+            // Start the blocking service
+            startBlockingService();
             Alert.alert('🔒 Blocking Started', `You're on a ${streak + 1} day streak! Stay focused!`);
           },
         },
       ]
     );
+  };
+
+  const startBlockingService = () => {
+    // This will start the UsageBlocker service
+    // We'll implement this with a native module
+    console.log('Starting blocking service...');
   };
 
   const handleStopBlocking = () => {
@@ -95,6 +103,16 @@ export default function HomeScreen() {
     );
   };
 
+  const requestUsageAccess = async () => {
+    try {
+      await IntentLauncher.startActivityAsync(
+        IntentLauncher.ActivityAction.USAGE_ACCESS_SETTINGS
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Please enable Usage Access manually in Settings.');
+    }
+  };
+
   const navigateToAppSelection = () => router.push('/app-selection');
   const navigateToTimer = () => router.push('/timer');
   const navigateToAdultBlocking = () => router.push('/adult-blocking');
@@ -113,18 +131,18 @@ export default function HomeScreen() {
     return `${hours} hour${hours > 1 ? 's' : ''}`;
   };
 
-  const styles = getStyles(colors, isDark);
+  const styles = getStyles();
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <StatusBar backgroundColor={colors.background} barStyle={isDark ? 'light-content' : 'dark-content'} />
+      <StatusBar backgroundColor="#f8f9fa" barStyle="dark-content" />
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Settings Button */}
         <TouchableOpacity style={styles.settingsButton} onPress={navigateToSettings}>
-          <Ionicons name="settings-outline" size={24} color={colors.text} />
+          <Ionicons name="settings-outline" size={24} color="#1a1a2e" />
         </TouchableOpacity>
 
         {/* Status Banner */}
@@ -132,7 +150,7 @@ export default function HomeScreen() {
           <Ionicons 
             name={isBlockingActive ? 'lock-closed' : 'lock-open'} 
             size={32} 
-            color={isBlockingActive ? colors.success : colors.danger} 
+            color={isBlockingActive ? '#4CAF50' : '#FF6B6B'} 
           />
           <Text style={styles.statusText}>
             {isBlockingActive ? '🔒 Blocking Active' : '🔓 No Active Block'}
@@ -167,7 +185,7 @@ export default function HomeScreen() {
 
         {/* Quote Card */}
         <View style={styles.quoteCard}>
-          <Ionicons name="chatbubble" size={20} color={colors.textSecondary} />
+          <Ionicons name="chatbubble" size={20} color="#666" />
           <Text style={styles.quoteText}>"{currentQuote}"</Text>
         </View>
 
@@ -177,7 +195,7 @@ export default function HomeScreen() {
             style={styles.primaryButton}
             onPress={navigateToAppSelection}
           >
-            <Ionicons name="apps" size={24} color={colors.textInverse} />
+            <Ionicons name="apps" size={24} color="#fff" />
             <Text style={styles.buttonText}>
               {blockedApps.length > 0 ? 'Manage Blocked Apps' : 'Select Apps to Block'}
             </Text>
@@ -187,7 +205,7 @@ export default function HomeScreen() {
             style={styles.primaryButton}
             onPress={navigateToAdultBlocking}
           >
-            <Ionicons name="shield" size={24} color={colors.textInverse} />
+            <Ionicons name="shield" size={24} color="#fff" />
             <Text style={styles.buttonText}>Adult Content Blocking</Text>
           </TouchableOpacity>
 
@@ -195,15 +213,23 @@ export default function HomeScreen() {
             style={styles.recoveryButton}
             onPress={navigateToRecovery}
           >
-            <Ionicons name="heart" size={24} color={colors.danger} />
+            <Ionicons name="heart" size={24} color="#FF6B6B" />
             <Text style={styles.recoveryButtonText}>Recovery Journey</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.secondaryButton}
+            onPress={requestUsageAccess}
+          >
+            <Ionicons name="stats-chart" size={24} color="#1a1a2e" />
+            <Text style={styles.secondaryButtonText}>Enable Usage Access</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={styles.secondaryButton}
             onPress={navigateToTimer}
           >
-            <Ionicons name="time" size={24} color={colors.text} />
+            <Ionicons name="time" size={24} color="#1a1a2e" />
             <Text style={styles.secondaryButtonText}>
               {timerActive ? `⏱️ ${timeDisplay}` : 'Set Timer'}
             </Text>
@@ -219,7 +245,7 @@ export default function HomeScreen() {
             <Ionicons 
               name={isBlockingActive ? 'stop' : 'play'} 
               size={24} 
-              color={colors.textInverse} 
+              color="#fff" 
             />
             <Text style={styles.buttonText}>
               {isBlockingActive ? 'Stop Blocking' : 'Start Blocking'}
@@ -240,11 +266,11 @@ export default function HomeScreen() {
   );
 }
 
-function getStyles(colors: any, isDark: boolean) {
+function getStyles() {
   return StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: '#f8f9fa',
       paddingBottom: Platform.OS === 'android' ? 120 : 80,
     },
     scrollContent: {
@@ -258,38 +284,38 @@ function getStyles(colors: any, isDark: boolean) {
       padding: 8,
     },
     statusCard: {
-      backgroundColor: colors.statusBg,
+      backgroundColor: '#ffffff',
       margin: 16,
+      marginTop: 50,
       padding: 20,
       borderRadius: 16,
       alignItems: 'center',
-      shadowColor: colors.cardShadow,
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.05,
       shadowRadius: 8,
       elevation: 2,
-      marginTop: 50,
     },
     activeCard: {
       borderWidth: 2,
-      borderColor: colors.statusActiveBorder,
-      backgroundColor: colors.statusActiveBg,
+      borderColor: '#4CAF50',
+      backgroundColor: '#f0faf0',
     },
     statusText: {
       fontSize: 20,
       fontWeight: '600',
-      color: colors.text,
+      color: '#1a1a2e',
       marginTop: 8,
     },
     remainingTime: {
       fontSize: 18,
-      color: colors.text,
+      color: '#1a1a2e',
       marginTop: 4,
       fontWeight: '500',
     },
     durationText: {
       fontSize: 14,
-      color: colors.textSecondary,
+      color: '#666',
       marginTop: 4,
     },
     statsRow: {
@@ -299,13 +325,13 @@ function getStyles(colors: any, isDark: boolean) {
       marginBottom: 16,
     },
     statCard: {
-      backgroundColor: colors.surface,
+      backgroundColor: '#ffffff',
       padding: 16,
       borderRadius: 12,
       alignItems: 'center',
       flex: 1,
       marginHorizontal: 4,
-      shadowColor: colors.cardShadow,
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.05,
       shadowRadius: 8,
@@ -314,18 +340,18 @@ function getStyles(colors: any, isDark: boolean) {
     statNumber: {
       fontSize: 24,
       fontWeight: 'bold',
-      color: colors.text,
+      color: '#1a1a2e',
     },
     statLabel: {
       fontSize: 12,
-      color: colors.textSecondary,
+      color: '#666',
       marginTop: 4,
     },
     quoteCard: {
       marginHorizontal: 16,
       marginBottom: 16,
       padding: 20,
-      backgroundColor: colors.quoteBg,
+      backgroundColor: '#f0f4ff',
       borderRadius: 12,
       flexDirection: 'row',
       alignItems: 'center',
@@ -333,7 +359,7 @@ function getStyles(colors: any, isDark: boolean) {
     },
     quoteText: {
       fontSize: 16,
-      color: colors.quoteText,
+      color: '#1a1a2e',
       flex: 1,
       fontStyle: 'italic',
     },
@@ -343,7 +369,7 @@ function getStyles(colors: any, isDark: boolean) {
       marginBottom: 16,
     },
     primaryButton: {
-      backgroundColor: colors.primary,
+      backgroundColor: '#1a1a2e',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -353,7 +379,7 @@ function getStyles(colors: any, isDark: boolean) {
       minHeight: 56,
     },
     secondaryButton: {
-      backgroundColor: colors.surface,
+      backgroundColor: '#ffffff',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -361,11 +387,11 @@ function getStyles(colors: any, isDark: boolean) {
       borderRadius: 12,
       gap: 8,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: '#e0e0e0',
       minHeight: 56,
     },
     recoveryButton: {
-      backgroundColor: isDark ? '#2a1a1a' : '#fff5f5',
+      backgroundColor: '#fff5f5',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
@@ -373,40 +399,40 @@ function getStyles(colors: any, isDark: boolean) {
       borderRadius: 12,
       gap: 8,
       borderWidth: 2,
-      borderColor: colors.danger,
+      borderColor: '#FF6B6B',
       minHeight: 56,
     },
     recoveryButtonText: {
-      color: colors.danger,
+      color: '#FF6B6B',
       fontSize: 16,
       fontWeight: '600',
     },
     startButton: {
-      backgroundColor: colors.success,
+      backgroundColor: '#4CAF50',
     },
     stopButton: {
-      backgroundColor: colors.danger,
+      backgroundColor: '#FF6B6B',
     },
     buttonText: {
-      color: colors.textInverse,
+      color: '#ffffff',
       fontSize: 16,
       fontWeight: '600',
     },
     secondaryButtonText: {
-      color: colors.text,
+      color: '#1a1a2e',
       fontSize: 16,
       fontWeight: '600',
     },
     motivationFooter: {
       margin: 16,
       padding: 20,
-      backgroundColor: colors.motivationBg,
+      backgroundColor: '#e8f5e9',
       borderRadius: 12,
       alignItems: 'center',
     },
     motivationFooterText: {
       fontSize: 16,
-      color: colors.motivationText,
+      color: '#2e7d32',
       textAlign: 'center',
       fontWeight: '500',
     },

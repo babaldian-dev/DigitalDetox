@@ -1,11 +1,10 @@
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
 import { usePasswordStore } from '../store/passwordStore';
 import { useAppStore } from '../store/appStore';
-import * as IntentLauncher from 'expo-intent-launcher';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -46,49 +45,24 @@ export default function SettingsScreen() {
     router.push('/notification-settings');
   };
 
-  const openAccessibilitySettings = async () => {
-    try {
-      // Try to open Accessibility settings directly
-      await IntentLauncher.startActivityAsync(
-        IntentLauncher.ActivityAction.ACCESSIBILITY_SETTINGS
-      );
-      
-      Alert.alert(
-        '🔧 Enable Accessibility',
-        'Please find "Digital Detox" in the list and toggle it ON.\n\n' +
-        'If you don\'t see it, try:\n' +
-        '1. Force stop the app\n' +
-        '2. Reopen and try again\n' +
-        '3. Restart your phone',
-        [{ text: 'OK' }]
-      );
-    } catch (error) {
-      // Fallback: Open main settings
-      await Linking.openSettings();
-      Alert.alert(
-        'Open Accessibility',
-        'Please navigate to:\n' +
-        'Settings → Additional settings → Accessibility → Installed services\n\n' +
-        'Find "Digital Detox" and toggle it ON.',
-        [{ text: 'OK' }]
-      );
-    }
-  };
-
-  const requestUsageAccess = async () => {
-    try {
-      await IntentLauncher.startActivityAsync(
-        IntentLauncher.ActivityAction.USAGE_ACCESS_SETTINGS
-      );
-    } catch (error) {
-      await Linking.openSettings();
-      Alert.alert(
-        'Enable Usage Access',
-        'Please navigate to:\n' +
-        'Settings → Apps → Special app access → Usage access\n\n' +
-        'Find "Digital Detox" and toggle it ON.',
-        [{ text: 'OK' }]
-      );
+  const openAccessibilitySettings = () => {
+    // Open Accessibility settings
+    if (Platform.OS === 'android') {
+      // Try the direct intent
+      const url = 'android.settings.ACCESSIBILITY_SETTINGS';
+      Linking.openSettings().then(() => {
+        Alert.alert(
+          '🔧 Find Digital Detox',
+          'Look for "Digital Detox" in the Accessibility settings and toggle it ON.\n\n' +
+          'If you don\'t see it:\n' +
+          '1. Tap the three dots (⋮) in top right\n' +
+          '2. Select "Show all" or "Show system"\n' +
+          '3. Look again for "Digital Detox"',
+          [{ text: 'OK' }]
+        );
+      });
+    } else {
+      Alert.alert('Not Available', 'This feature is only available on Android.');
     }
   };
 
@@ -101,14 +75,6 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Permissions</Text>
           
-          <TouchableOpacity style={styles.settingItem} onPress={requestUsageAccess}>
-            <View style={styles.settingInfo}>
-              <Ionicons name="stats-chart" size={24} color={colors.text} />
-              <Text style={styles.settingText}>Enable Usage Access</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
-          </TouchableOpacity>
-
           <TouchableOpacity style={styles.settingItem} onPress={openAccessibilitySettings}>
             <View style={styles.settingInfo}>
               <Ionicons name="accessibility" size={24} color={colors.text} />
