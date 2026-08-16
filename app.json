@@ -5,10 +5,8 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-	"newArchEnabled": false,
+    "newArchEnabled": false,
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.digitaldetox.app"
@@ -34,19 +32,12 @@
       "favicon": "./assets/favicon.png"
     },
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     },
     "plugins": [
       "expo-router",
       "expo-status-bar",
       "expo-secure-store"
-    ],
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "4c59305d-960a-476f-b299-12841ba21dfd"
-      }
-    }
+    ]
   }
 }

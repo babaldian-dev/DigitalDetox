@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "gradleArgs": ["-PnewArchEnabled=false"]
+      }
+    },
+    "preview": {
+      "android": {
+        "buildType": "apk",
+        "gradleArgs": ["-PnewArchEnabled=false"]
+      },
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle",
+        "gradleArgs": ["-PnewArchEnabled=false"]
+      }
+    }
+  }
+}
