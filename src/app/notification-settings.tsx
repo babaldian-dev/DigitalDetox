@@ -5,7 +5,6 @@ import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
 import { useNotificationStore } from '../store/notificationStore';
 import { useState, useEffect } from 'react';
-import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 
 export default function NotificationSettingsScreen() {
@@ -33,29 +32,9 @@ export default function NotificationSettingsScreen() {
     // Check if running in Expo Go
     const isExpoGoApp = Constants.appOwnership === 'expo';
     setIsExpoGo(isExpoGoApp);
-    
-    // Request permissions if not in Expo Go
-    if (!isExpoGoApp && isEnabled) {
-      requestPermissions();
-    }
   }, []);
 
-  const requestPermissions = async () => {
-    try {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permissions Required',
-          'Please enable notifications in your device settings.',
-          [{ text: 'OK' }]
-        );
-      }
-    } catch (error) {
-      console.log('Error requesting permissions:', error);
-    }
-  };
-
-  const handleToggleAll = async (value: boolean) => {
+  const handleToggleAll = (value: boolean) => {
     if (isExpoGo) {
       Alert.alert(
         '⚠️ Expo Go Limitation',
@@ -65,31 +44,6 @@ export default function NotificationSettingsScreen() {
       );
     }
     toggleAll(value);
-    if (value && !isExpoGo) {
-      await requestPermissions();
-    }
-  };
-
-  const handleToggleDaily = async (value: boolean) => {
-    setDailyReminder(value);
-    if (isExpoGo) {
-      Alert.alert(
-        '💡 Reminder',
-        'Notifications will work when you build a standalone APK or development build.',
-        [{ text: 'OK' }]
-      );
-    }
-  };
-
-  const handleToggleEvening = async (value: boolean) => {
-    setEveningReminder(value);
-    if (isExpoGo) {
-      Alert.alert(
-        '💡 Reminder',
-        'Notifications will work when you build a standalone APK or development build.',
-        [{ text: 'OK' }]
-      );
-    }
   };
 
   return (
@@ -154,7 +108,12 @@ export default function NotificationSettingsScreen() {
             </View>
             <Switch
               value={dailyReminder && isEnabled}
-              onValueChange={handleToggleDaily}
+              onValueChange={() => {
+                if (isExpoGo) {
+                  Alert.alert('💡 Reminder', 'Notifications will work when you build a standalone APK or development build.', [{ text: 'OK' }]);
+                }
+                setDailyReminder(!dailyReminder);
+              }}
               trackColor={{ false: colors.switchTrack, true: colors.success }}
               thumbColor={dailyReminder && isEnabled ? colors.switchThumb : colors.switchThumb}
               disabled={!isEnabled}
@@ -171,7 +130,12 @@ export default function NotificationSettingsScreen() {
             </View>
             <Switch
               value={eveningReminder && isEnabled}
-              onValueChange={handleToggleEvening}
+              onValueChange={() => {
+                if (isExpoGo) {
+                  Alert.alert('💡 Reminder', 'Notifications will work when you build a standalone APK or development build.', [{ text: 'OK' }]);
+                }
+                setEveningReminder(!eveningReminder);
+              }}
               trackColor={{ false: colors.switchTrack, true: colors.success }}
               thumbColor={eveningReminder && isEnabled ? colors.switchThumb : colors.switchThumb}
               disabled={!isEnabled}
@@ -188,7 +152,7 @@ export default function NotificationSettingsScreen() {
             </View>
             <Switch
               value={streakReminder && isEnabled}
-              onValueChange={(value) => setStreakReminder(value)}
+              onValueChange={() => setStreakReminder(!streakReminder)}
               trackColor={{ false: colors.switchTrack, true: colors.success }}
               thumbColor={streakReminder && isEnabled ? colors.switchThumb : colors.switchThumb}
               disabled={!isEnabled}
@@ -205,7 +169,7 @@ export default function NotificationSettingsScreen() {
             </View>
             <Switch
               value={completionReminder && isEnabled}
-              onValueChange={(value) => setCompletionReminder(value)}
+              onValueChange={() => setCompletionReminder(!completionReminder)}
               trackColor={{ false: colors.switchTrack, true: colors.success }}
               thumbColor={completionReminder && isEnabled ? colors.switchThumb : colors.switchThumb}
               disabled={!isEnabled}
@@ -222,31 +186,12 @@ export default function NotificationSettingsScreen() {
         </View>
 
         {!isExpoGo && (
-          <TouchableOpacity 
-            style={styles.testButton} 
-            onPress={async () => {
-              if (!isEnabled) {
-                Alert.alert('Notifications Disabled', 'Please enable notifications first.');
-                return;
-              }
-              try {
-                await Notifications.scheduleNotificationAsync({
-                  content: {
-                    title: '🔔 Test Notification',
-                    body: 'This is a test notification from Digital Detox!',
-                    sound: true,
-                  },
-                  trigger: { seconds: 2 },
-                });
-                Alert.alert('✅ Test Sent', 'You should receive a test notification in 2 seconds.');
-              } catch (error) {
-                Alert.alert('Error', 'Failed to send notification. Please try again.');
-              }
-            }}
-          >
-            <Ionicons name="play" size={20} color={colors.textInverse} />
-            <Text style={styles.testButtonText}>Send Test Notification</Text>
-          </TouchableOpacity>
+          <View style={styles.standaloneNote}>
+            <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+            <Text style={styles.standaloneText}>
+              ✅ Notifications will work in this build!
+            </Text>
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -366,20 +311,19 @@ function getStyles(colors: any, isDark: boolean) {
       fontSize: 14,
       color: colors.textSecondary,
     },
-    testButton: {
-      backgroundColor: colors.primary,
+    standaloneNote: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center',
+      backgroundColor: '#e8f5e9',
       padding: 16,
       borderRadius: 12,
-      gap: 8,
+      gap: 12,
       marginTop: 8,
     },
-    testButtonText: {
-      color: colors.textInverse,
-      fontSize: 16,
-      fontWeight: '600',
+    standaloneText: {
+      fontSize: 14,
+      color: '#2e7d32',
+      fontWeight: '500',
     },
   });
 }

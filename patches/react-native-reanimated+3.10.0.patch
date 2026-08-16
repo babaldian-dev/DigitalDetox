@@ -1,0 +1,13 @@
+diff --git a/android/src/main/java/com/swmansion/reanimated/layoutReanimation/ReanimatedUIImplementation.java b/android/src/main/java/com/swmansion/reanimated/layoutReanimation/ReanimatedUIImplementation.java
+index xxxxx..xxxxx 100644
+--- a/android/src/main/java/com/swmansion/reanimated/layoutReanimation/ReanimatedUIImplementation.java
++++ b/android/src/main/java/com/swmansion/reanimated/layoutReanimation/ReanimatedUIImplementation.java
+@@ -40,7 +40,7 @@ public class ReanimatedUIImplementation extends UIImplementation {
+     super(context, viewManagers, eventDispatcher, executor);
+ 
+     ReanimatedNativeHierarchyManager reanimatedHierarchyManager = (ReanimatedNativeHierarchyManager) getNativeViewHierarchyManager();
+-    mOperationsQueue = new UIViewOperationQueue(
++    mOperationsQueue = new UIViewOperationQueueForReanimated(
+         context,
+         reanimatedHierarchyManager,
+         eventDispatcher,
