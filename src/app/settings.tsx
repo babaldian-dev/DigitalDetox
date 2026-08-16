@@ -6,7 +6,6 @@ import { useTheme } from '../context/ThemeContext';
 import { usePasswordStore } from '../store/passwordStore';
 import { useAppStore } from '../store/appStore';
 import * as IntentLauncher from 'expo-intent-launcher';
-import * as Permissions from 'expo-permissions';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -47,19 +46,49 @@ export default function SettingsScreen() {
     router.push('/notification-settings');
   };
 
-  const requestUsageAccess = async () => {
+  const openAccessibilitySettings = async () => {
     try {
-      // Open the system settings for usage access
-      await Linking.openSettings();
+      // Try to open Accessibility settings directly
+      await IntentLauncher.startActivityAsync(
+        IntentLauncher.ActivityAction.ACCESSIBILITY_SETTINGS
+      );
       
       Alert.alert(
-        'Enable Usage Access',
-        'Please find "Digital Detox" in the list and toggle the switch ON.\n\n' +
-        'This permission is required to detect when blocked apps are opened.',
+        '🔧 Enable Accessibility',
+        'Please find "Digital Detox" in the list and toggle it ON.\n\n' +
+        'If you don\'t see it, try:\n' +
+        '1. Force stop the app\n' +
+        '2. Reopen and try again\n' +
+        '3. Restart your phone',
         [{ text: 'OK' }]
       );
     } catch (error) {
-      Alert.alert('Error', 'Unable to open settings. Please manually enable the permission.');
+      // Fallback: Open main settings
+      await Linking.openSettings();
+      Alert.alert(
+        'Open Accessibility',
+        'Please navigate to:\n' +
+        'Settings → Additional settings → Accessibility → Installed services\n\n' +
+        'Find "Digital Detox" and toggle it ON.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const requestUsageAccess = async () => {
+    try {
+      await IntentLauncher.startActivityAsync(
+        IntentLauncher.ActivityAction.USAGE_ACCESS_SETTINGS
+      );
+    } catch (error) {
+      await Linking.openSettings();
+      Alert.alert(
+        'Enable Usage Access',
+        'Please navigate to:\n' +
+        'Settings → Apps → Special app access → Usage access\n\n' +
+        'Find "Digital Detox" and toggle it ON.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -76,6 +105,14 @@ export default function SettingsScreen() {
             <View style={styles.settingInfo}>
               <Ionicons name="stats-chart" size={24} color={colors.text} />
               <Text style={styles.settingText}>Enable Usage Access</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.settingItem} onPress={openAccessibilitySettings}>
+            <View style={styles.settingInfo}>
+              <Ionicons name="accessibility" size={24} color={colors.text} />
+              <Text style={styles.settingText}>Enable Accessibility Service</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
           </TouchableOpacity>
