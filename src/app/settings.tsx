@@ -1,10 +1,12 @@
-import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../context/ThemeContext';
 import { usePasswordStore } from '../store/passwordStore';
 import { useAppStore } from '../store/appStore';
+import * as IntentLauncher from 'expo-intent-launcher';
+import * as Permissions from 'expo-permissions';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -45,11 +47,40 @@ export default function SettingsScreen() {
     router.push('/notification-settings');
   };
 
+  const requestUsageAccess = async () => {
+    try {
+      // Open the system settings for usage access
+      await Linking.openSettings();
+      
+      Alert.alert(
+        'Enable Usage Access',
+        'Please find "Digital Detox" in the list and toggle the switch ON.\n\n' +
+        'This permission is required to detect when blocked apps are opened.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Unable to open settings. Please manually enable the permission.');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>Settings</Text>
         
+        {/* Permissions Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Permissions</Text>
+          
+          <TouchableOpacity style={styles.settingItem} onPress={requestUsageAccess}>
+            <View style={styles.settingInfo}>
+              <Ionicons name="stats-chart" size={24} color={colors.text} />
+              <Text style={styles.settingText}>Enable Usage Access</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
         {/* Appearance Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Appearance</Text>
