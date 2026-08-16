@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import Constants from 'expo-constants';
 
 type DurationOption = {
   label: string;
@@ -34,8 +35,7 @@ export default function AdultBlockingScreen() {
   const [blockingActive, setBlockingActive] = useState(false);
   const [remainingTime, setRemainingTime] = useState('');
   const [timerEndTime, setTimerEndTime] = useState<Date | null>(null);
-  const [showWarning, setShowWarning] = useState(false);
-  
+
   // Adult content blocklist sources
   const blocklistSources = [
     { name: 'UT1 Pornography', domains: '150,000+', url: 'https://dsi.ut-capitole.fr/blacklists/' },
@@ -44,7 +44,6 @@ export default function AdultBlockingScreen() {
   ];
 
   useEffect(() => {
-    // Timer update
     const timerInterval = setInterval(() => {
       if (blockingActive && timerEndTime) {
         const now = new Date();
@@ -80,7 +79,6 @@ export default function AdultBlockingScreen() {
 
   const handleToggle = () => {
     if (!isAdultBlockingEnabled) {
-      // Show consent dialog before enabling
       Alert.alert(
         '⚠️ Enable Adult Content Blocking',
         'This feature will block access to adult content websites across all browsers and apps on your device.\n\n' +
@@ -104,7 +102,6 @@ export default function AdultBlockingScreen() {
         ]
       );
     } else {
-      // Confirm before disabling
       Alert.alert(
         'Disable Adult Content Blocking',
         'Are you sure you want to disable adult content blocking?\n\n' +
@@ -131,7 +128,6 @@ export default function AdultBlockingScreen() {
       return;
     }
 
-    // Show final warning before starting
     Alert.alert(
       '⚠️ Final Confirmation',
       `You are about to start blocking adult content for ${selectedDuration.label}.\n\n` +
@@ -148,12 +144,9 @@ export default function AdultBlockingScreen() {
             setTimerEndTime(endTime);
             setBlockingActive(true);
             
-            const hours = selectedDuration.hours;
-            let displayText = selectedDuration.label;
-            
             Alert.alert(
               '🔒 Blocking Started',
-              `Adult content blocking is now active for ${displayText}.\n\n` +
+              `Adult content blocking is now active for ${selectedDuration.label}.\n\n` +
               `⏱️ Timer will count down from: ${selectedDuration.label}\n` +
               '🔒 You cannot stop this session early.\n\n' +
               'Stay strong! You\'ve got this! 💪',
@@ -221,14 +214,6 @@ export default function AdultBlockingScreen() {
           <Text style={styles.title}>Adult Content Blocking</Text>
           <Text style={styles.subtitle}>
             Protect yourself from adult content across all browsers and apps
-          </Text>
-        </View>
-
-        {/* Note for Expo Go */}
-        <View style={styles.noteCard}>
-          <Ionicons name="information-circle" size={24} color="#FF9800" />
-          <Text style={styles.noteText}>
-            ⚠️ You're running in Expo Go. For full DNS filtering, you'll need to build a standalone APK.
           </Text>
         </View>
 
@@ -514,20 +499,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 4,
-  },
-  noteCard: {
-    backgroundColor: '#fff3e0',
-    padding: 12,
-    borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-  },
-  noteText: {
-    fontSize: 14,
-    color: '#E65100',
-    flex: 1,
   },
   statusCard: {
     backgroundColor: '#ffffff',
