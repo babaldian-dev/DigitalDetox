@@ -5,7 +5,10 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+	"newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.digitaldetox.app"
@@ -38,6 +41,12 @@
       "expo-router",
       "expo-status-bar",
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4c59305d-960a-476f-b299-12841ba21dfd"
+      }
+    }
   }
 }
