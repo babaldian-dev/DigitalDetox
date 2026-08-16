@@ -5,23 +5,21 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "gradleArgs": ["-PnewArchEnabled=false"]
-      }
+      "distribution": "internal"
     },
     "preview": {
       "android": {
-        "buildType": "apk",
-        "gradleArgs": ["-PnewArchEnabled=false"]
+        "buildType": "apk"
       },
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_ANDROID_GRADLE_ARGS": "-PnewArchEnabled=false"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "android": {
-        "buildType": "app-bundle",
-        "gradleArgs": ["-PnewArchEnabled=false"]
+      "env": {
+        "EXPO_ANDROID_GRADLE_ARGS": "-PnewArchEnabled=false"
       }
     }
   }
